@@ -62,7 +62,10 @@ namespace ca {
         VT_ERROR_CASE(kVTCouldNotFindExtensionErr);
         VT_ERROR_CASE(kVTExtensionConflictErr);
         VT_ERROR_CASE(kVTVideoEncoderAutoWhiteBalanceNotLockedErr);
+#if __MAC_OS_X_VERSION_MAX_ALLOWED > 260500
+        // not declared in the macOS 26.5 SDK (Xcode 26.6) or older
         VT_ERROR_CASE(kVTLogTransferFunctionMismatchErr);
+#endif
 #undef VT_ERROR_CASE
 
       default:
