@@ -357,6 +357,7 @@ namespace video {
         {"AllowFrameReordering", kVTCompressionPropertyKey_AllowFrameReordering},
         {"AllowTemporalCompression", kVTCompressionPropertyKey_AllowTemporalCompression},
         {"AllowOpenGOP", kVTCompressionPropertyKey_AllowOpenGOP},
+        {"EnableLTR", kVTCompressionPropertyKey_EnableLTR},
         {"H264EntropyMode", kVTCompressionPropertyKey_H264EntropyMode},
         {"MaxKeyFrameInterval", kVTCompressionPropertyKey_MaxKeyFrameInterval},
         {"MaxKeyFrameIntervalDuration", kVTCompressionPropertyKey_MaxKeyFrameIntervalDuration},

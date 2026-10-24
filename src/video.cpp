@@ -1442,6 +1442,10 @@ namespace video {
         {"AllowFrameReordering"s, false},
         {"AllowTemporalCompression"s, true},
         {"AllowOpenGOP"s, false},
+        // The low-latency H.264 encoder otherwise marks long-term reference frames and predicts from them
+        // (about every 4 s). Clients without reference frame invalidation rewrite the SPS to a single
+        // reference frame, which breaks decoding of those frames. See LizardByte/Sunshine#5469.
+        {"EnableLTR"s, false},
         {"H264EntropyMode"s, &config::video.vt.vt_coder},
         {"MaxKeyFrameInterval"s, 65535},
         {"MaxKeyFrameIntervalDuration"s, 65535},
