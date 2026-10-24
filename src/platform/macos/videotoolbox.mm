@@ -235,10 +235,11 @@ namespace video {
     }
   }
 
+  // SDR is captured in the ITU-R 709 color space (sck_video.mm), so Rec. 601 clients only get a
+  // different YCbCr matrix. Signaling SMPTE C primaries or the sRGB transfer function here would make
+  // VideoToolbox convert every frame to match.
   static CFStringRef sunshine_to_vt_primaries(const sunshine_colorspace_t &cs) {
     switch (cs.colorspace) {
-      case colorspace_e::rec601:
-        return kCVImageBufferColorPrimaries_SMPTE_C;
       case colorspace_e::bt2020:
       case colorspace_e::bt2020sdr:
         return kCVImageBufferColorPrimaries_ITU_R_2020;
@@ -249,8 +250,6 @@ namespace video {
 
   static CFStringRef sunshine_to_vt_transfer(const sunshine_colorspace_t &cs) {
     switch (cs.colorspace) {
-      case colorspace_e::rec601:
-        return kCVImageBufferTransferFunction_sRGB;
       case colorspace_e::bt2020:
         return kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ;
       case colorspace_e::bt2020sdr:
