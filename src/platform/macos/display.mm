@@ -191,13 +191,18 @@ namespace platf {
 
         auto st = slot_time(emitted);
         auto st_next = slot_time(emitted + 1);
+        // Allow half a frame interval of error. Capture timestamps fall on display refreshes but carry a little
+        // jitter from the clock conversion, so a frame that lands exactly on its slot is often a few hundred
+        // nanoseconds early. Without this, after every skipped refresh (static or slow content) the next frame
+        // had about a 50% chance of being dropped (about 13% of captured frames on a 60 Hz display).
+        auto half_interval = (slot_time(1) - slot_time(0)) / 2;
 
-        if (cpt < st) {
+        if (cpt + half_interval < st) {
           // Capture is faster than stream, drop this frame
           continue;
         }
 
-        if (cpt < st_next) {
+        if (cpt + half_interval < st_next) {
           // Capture is within the expected slot, advance slot counter
           ++emitted;
         } else {
