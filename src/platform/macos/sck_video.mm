@@ -335,7 +335,10 @@ static bool init_screen_stream(struct screen_capture *sc) {
     if (@available(macOS 15.0, *)) {
       [sc->stream_properties setCaptureDynamicRange:SCCaptureDynamicRangeSDR];
     }
-    [sc->stream_properties setColorSpaceName:kCGColorSpaceITUR_709];
+    // Capture in sRGB, not ITU-R 709: converting the desktop to kCGColorSpaceITUR_709 re-encodes it with
+    // the BT.1886 curve (gamma 2.4), which lifts dark and mid tones (#333 arrived as Y 69 instead of 60).
+    // sRGB keeps the values the screen shows, like the Windows capture does.
+    [sc->stream_properties setColorSpaceName:kCGColorSpaceSRGB];
     // Output the YCbCr matrix the client asked for. If it differs from the matrix the encoder
     // signals, VideoToolbox converts every frame (about 1.3 ms per 720p frame on an M1 Pro).
     [sc->stream_properties setColorMatrix:sc->colorspace.colorspace == video::colorspace_e::rec601 ? kCVImageBufferYCbCrMatrix_ITU_R_601_4 : kCVImageBufferYCbCrMatrix_ITU_R_709_2];
@@ -578,6 +581,17 @@ fail:
 
 @end
 
+// One color attachment of a captured frame, for the debug log ("-" when it isn't set).
+static std::string color_attachment(CVBufferRef buffer, CFStringRef key) {
+  CFTypeRef value = CVBufferCopyAttachment(buffer, key, nullptr);
+  if (!value) {
+    return "-";
+  }
+  std::string out = CFGetTypeID(value) == CFStringGetTypeID() ? [(__bridge NSString *) value UTF8String] : "?";
+  CFRelease(value);
+  return out;
+}
+
 // based on screen_stream_video_update from OBS
 void screen_stream_video_update(struct screen_capture *sc, CMSampleBufferRef sample_buffer) {
   bool frame_detail_errored = false;
@@ -734,7 +748,10 @@ void screen_stream_video_update(struct screen_capture *sc, CMSampleBufferRef sam
 
       BOOST_LOG(debug) << std::fixed << std::setprecision(2)
                        << "ScreenCaptureKit framesIn/Out/Idle/Dropped " << FramesIn << "/" << FramesOut << "/" << FramesIdle << "/" << FramesDropped
-                       << " rateIn " << framesInFPS;
+                       << " rateIn " << framesInFPS
+                       << " colors " << color_attachment(image_buffer, kCVImageBufferColorPrimariesKey)
+                       << "/" << color_attachment(image_buffer, kCVImageBufferTransferFunctionKey)
+                       << "/" << color_attachment(image_buffer, kCVImageBufferYCbCrMatrixKey);
 
       LastFramesIn = FramesIn;
     }
