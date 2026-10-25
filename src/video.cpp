@@ -78,6 +78,16 @@ namespace video {
         return true;
       }
 
+#ifdef __APPLE__
+      // macOS does not list a sleeping display as active, so a client connecting while the display is asleep
+      // could never start a stream. Wake it like user activity would (an external display can take a few
+      // seconds) and probe once it is back.
+      BOOST_LOG(info) << "No display devices are active, waking the display";
+      if (display_device::wake_display({}, 5s)) {
+        return true;
+      }
+#endif
+
       BOOST_LOG(error) << "No display devices are active at the moment! Cannot probe the encoders.";
       return false;
     }
